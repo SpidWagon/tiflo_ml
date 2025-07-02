@@ -14,10 +14,6 @@ conda create --name tiflo_venv
 conda activate tiflo_venv
 ```
 ### jupyter
-Установить jupyter 
-```
-pip install jupyter
-```
 установить jupyter notebook
 ```commandline
 conda install jupyter
