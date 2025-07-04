@@ -10,7 +10,7 @@ from functools import lru_cache
 def get_models():
     processor  = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
     model      = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
-    translator = pipeline("translation_en_to_ru", model="C:/mine/models/opus-mt-en-ru", tokenizer="C:/mine/models/opus-mt-en-ru")
+    translator = pipeline("translation_en_to_ru", model="model", tokenizer="C:/mine/models/opus-mt-en-ru")
     return processor, model, translator
 
 
@@ -23,4 +23,4 @@ def model_request(image):
     # Перевод на русский
     ru_caption = translator(en_caption, max_length=128)[0]["translation_text"]
 
-    return (ru_caption)
+    return ru_caption
