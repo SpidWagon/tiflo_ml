@@ -12,8 +12,6 @@ def decode_base64_image(b64_string):
     if b64_string.startswith("data:image"):
         b64_string = b64_string.split(",")[1]
 
-    b64_string = b64_string + '=' * (-len(b64_string) % 4)
-
     try:
         image_data = base64.b64decode(b64_string)
         image = Image.open(BytesIO(image_data)).convert("RGB")
@@ -22,6 +20,7 @@ def decode_base64_image(b64_string):
 
     except Exception as e:
         print("Ошибка при декодировании:", e)
+        exit()
 
 
 
@@ -35,4 +34,8 @@ def root(req: Req):
         "comment": caption,
         "timestamp": req.timestamp
     }
+
+@app.get("/")
+def prikol():
+    return "КУДА ТЫ ЛЕЗЕШЬ??"
 
