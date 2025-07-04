@@ -1,3 +1,4 @@
 .idea/
 .ipynb_checkpoints
-image2text/data/dataset/*.*
+image2text/data/dataset/*
+!image2text/data/dataset/.placeholder
