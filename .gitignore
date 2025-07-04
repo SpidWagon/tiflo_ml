@@ -1,2 +1,4 @@
 .idea/
 .ipynb_checkpoints
+image2text/models/model_artifacts/*
+!image2text/models/model_artifacts/.placeholder
