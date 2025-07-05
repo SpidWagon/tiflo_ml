@@ -1,46 +1,68 @@
+import os, shutil, subprocess, sys, tempfile
 from pathlib import Path
-import subprocess, tempfile, shutil, sys
+import yaml
 from tqdm import tqdm
 
-KAGGLE_SLUG = "adityajn105/flickr30k-images"   
-OUT_DIR     = Path("data/dataset")           
-FLAG_FILE   = OUT_DIR / ".done"              
+KAGGLE_SLUG = "adityajn105/flickr30k-images"
+DEST_DIR    = Path("data/dataset")
+DONE_FLAG   = DEST_DIR / ".done"
+
+def load_creds():
+    cfg = Path("image2text/data/creds.yaml")
+    if not cfg.exists():
+        return
+    data = yaml.safe_load(cfg.read_text()) or {}
+    os.environ.setdefault("KAGGLE_USERNAME", str(data.get("kaggle_username", "")))
+    os.environ.setdefault("KAGGLE_KEY", str(data.get("kaggle_key", "")))
+
+def has_creds():
+    return (
+        Path.home().joinpath(".kaggle", "kaggle.json").exists()
+        or (os.getenv("KAGGLE_USERNAME") and os.getenv("KAGGLE_KEY"))
+    )
 
 def run(cmd):
     try:
         subprocess.check_call(cmd)
     except FileNotFoundError:
-        sys.exit("Не найден kaggle-CLI")
-    except subprocess.CalledProcessError as e:
-        sys.exit(f"Ошибка {cmd}: {e}")
+        sys.exit("kaggle CLI не найден. Установите: pip install kaggle")
+    except subprocess.CalledProcessError as err:
+        sys.exit(f"Команда {' '.join(cmd)} вернула ошибку: {err}")
 
 def main():
-    if FLAG_FILE.exists():
-        print("Датасет уже загружен")
+    load_creds()
+
+    if DONE_FLAG.exists():
+        print("Датасет уже скачан, пропускаю.")
         return
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if not has_creds():
+        sys.exit(
+            "Нет API-ключа Kaggle"
+        )
 
-    with tempfile.TemporaryDirectory() as tmp:
-        print("Скачиваю с Kaggle")
-        run(["kaggle", "datasets", "download", "-d", KAGGLE_SLUG, "-p", tmp])
+    DEST_DIR.mkdir(parents=True, exist_ok=True)
 
-        zip_path = next(Path(tmp).glob("*.zip"))
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        print("Скачиваю архив")
+        run(["kaggle", "datasets", "download", "-d", KAGGLE_SLUG, "-p", str(tmp)])
+
+        zip_file = next(tmp.glob("*.zip"))
         print("Распаковываю")
-        run(["unzip", "-q", str(zip_path), "-d", tmp])
+        run(["unzip", "-q", str(zip_file), "-d", str(tmp)])
 
-        # переносим всё в data/dataset/
-        for item in tqdm(list(Path(tmp).iterdir()), desc="Перемещаю", unit="файл"):
-            if item.name.endswith(".zip"):  # сам архив не нужен
+        print("Перемещаю файлы")
+        for item in tqdm(tmp.iterdir(), unit="файл"):
+            if item.suffix == ".zip":
                 continue
-            dest = OUT_DIR / item.name
-            if dest.exists():
-                if dest.is_file(): dest.unlink()
-                else:              shutil.rmtree(dest)
-            shutil.move(str(item), str(dest))
+            target = DEST_DIR / item.name
+            if target.exists():
+                shutil.rmtree(target) if target.is_dir() else target.unlink()
+            shutil.move(str(item), str(target))
 
-    FLAG_FILE.touch()
-    print("Готово: картинки и описания в data/dataset/")
+    DONE_FLAG.touch()
+    print("Готово: датасет лежит в data/dataset/")
 
 if __name__ == "__main__":
     main()
