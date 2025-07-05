@@ -1,20 +1,21 @@
-import time
-import requests
-import logging
-import torch
+from fastapi import FastAPI
+from formats import *
+from utils.model_req import decode_base64_image, model_request
 
-from PIL import Image
-from transformers import AutoProcessor, Blip2ForConditionalGeneration
+app = FastAPI()
 
 
-def main():
-    print("placeholder code")
+@app.post("/")
+def root(req: Req):
+    image = decode_base64_image(req.image)
+    caption = model_request(image)
 
-    logging.info("succefully finished placeholder code")
+    return {
+        "comment": caption,
+        "timestamp": req.timestamp
+    }
 
-    while True:
-        time.sleep(1)
+@app.get("/")
+def prikol():
+    return "КУДА ТЫ ЛЕЗЕШЬ??"
 
-
-if __name__ == "__main__":
-    main()
