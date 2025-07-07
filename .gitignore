@@ -1,2 +1,9 @@
-.idea/
-.ipynb_checkpoints
+**/.idea/
+
+**/.ipynb_checkpoints
+
+**/.DS_Store
+**/__pycache__/
+
+image2text/models/model_artifacts/*
+!image2text/models/model_artifacts/.placeholder
