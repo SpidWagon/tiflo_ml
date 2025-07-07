@@ -1,6 +1,9 @@
-.idea/
-.ipynb_checkpoints
-image2text/data/dataset/*
-!image2text/data/dataset/.placeholder
-image2text/data/creds.yamlimage2text/data/creds.yaml
-.DS_Store
+**/.idea/
+
+**/.ipynb_checkpoints
+
+**/.DS_Store
+**/__pycache__/
+
+image2text/models/model_artifacts/*
+!image2text/models/model_artifacts/.placeholder
