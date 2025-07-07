@@ -1,2 +1,5 @@
 .idea/
 .ipynb_checkpoints
+.DS_Store
+examples/.DS_Store
+image2text/__pycache__/

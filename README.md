@@ -23,3 +23,8 @@ conda install jupyter
 ```commandline
 conda install nb_conda_kernels
 ```
+## Запуск приложения 
+Запуск контейнеров 
+```commandline
+docker compose up -d
+```
