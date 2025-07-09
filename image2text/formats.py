@@ -2,10 +2,8 @@ from pydantic import BaseModel
 
 
 class Req(BaseModel):
-    image: str
-    timestamp: str
+    images: list
 
 
 class Result(BaseModel):
-    comment: str
-    timestamp: str
+    comments: list
