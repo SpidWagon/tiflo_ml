@@ -14,6 +14,4 @@ def download_model(model_id=MODEL_ID, local_dir=LOCAL_DIR):
         force_download=False
     )
 
-    print(f"Модель '{model_id}' скачана в папку {local_dir}")
-
-    # download_model(MODEL_ID, LOCAL_DIR)
+    print(f"Model '{model_id}' is loaded to {local_dir}")

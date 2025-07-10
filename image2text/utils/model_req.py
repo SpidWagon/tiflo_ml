@@ -39,5 +39,5 @@ class Model:
             return image
 
         except Exception as e:
-            print("Ошибка при декодировании:", e)
+            print("image decoding error:", e)
             exit()
