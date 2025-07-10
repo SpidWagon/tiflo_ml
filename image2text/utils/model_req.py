@@ -3,17 +3,19 @@ from PIL import Image
 import base64
 from transformers import BlipProcessor, BlipForConditionalGeneration, pipeline
 
-PROCESSOR = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-MODEL = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
-TRANSLATOR = pipeline("translation_en_to_ru", model="models/model_artifacts", tokenizer="models/model_artifacts")
-
 
 class Model:
-    def __init__(self):
-        self.processor = PROCESSOR
-        self.model = MODEL
-        self.translator = TRANSLATOR
+    def __init__(
+            self,
+            processor="Salesforce/blip-image-captioning-base",
+            model="Salesforce/blip-image-captioning-base",
+            translator_task="translation_en_to_ru",
+            translator_model="models/model_artifacts",
+            translator_tokenizer="models/model_artifacts"):
 
+        self.processor = BlipProcessor.from_pretrained(processor)
+        self.model = BlipForConditionalGeneration.from_pretrained(model)
+        self.translator = pipeline(translator_task, model=translator_model, tokenizer=translator_tokenizer)
 
     def model_request(self, image):
         processor, model, translator = self.processor, self.model, self.translator
@@ -26,15 +28,16 @@ class Model:
 
         return ru_caption
 
-def decode_base64_image(b64_string):
-    if b64_string.startswith("data:image"):
-        b64_string = b64_string.split(",")[1]
+    @staticmethod
+    def decode_base64_image(b64_string):
+        if b64_string.startswith("data:image"):
+            b64_string = b64_string.split(",")[1]
 
-    try:
-        image_data = base64.b64decode(b64_string)
-        image = Image.open(BytesIO(image_data)).convert("RGB")
-        return image
+        try:
+            image_data = base64.b64decode(b64_string)
+            image = Image.open(BytesIO(image_data)).convert("RGB")
+            return image
 
-    except Exception as e:
-        print("Ошибка при декодировании:", e)
-        exit()
+        except Exception as e:
+            print("Ошибка при декодировании:", e)
+            exit()
