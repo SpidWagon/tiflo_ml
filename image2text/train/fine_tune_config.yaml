@@ -1,0 +1,15 @@
+model_id: Salesforce/blip2-opt-2.7b
+train_cfg:
+  num_epochs: 1
+  batch_size: 2
+  lr: 2.0e-5
+  max_tokens: 128
+lora_cfg:
+  r: 8
+  lora_alpha: 16
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+quant_cfg:
+  load_in_8bit: true
+  llm_int8_enable_fp32_cpu_offload: true

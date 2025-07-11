@@ -3,17 +3,19 @@ from pathlib import Path
 import yaml
 from tqdm import tqdm
 
-KAGGLE_SLUG = "adityajn105/flickr30k-images"
-DEST_DIR    = Path("data/dataset")
-DONE_FLAG   = DEST_DIR / ".done"
+KAGGLE_SLUG = "adityajn105/flickr30k"
+DEST_DIR = Path("dataset")
+DONE_FLAG = DEST_DIR / ".done"
 
 def load_creds():
-    cfg = Path("image2text/data/creds.yaml")
-    if not cfg.exists():
-        return
+    cfg = Path(os.path.join(os.getcwd(), "creds.yaml"))
+    # cfg = Path("./")
+    # if not cfg.exists():
+    #     return
     data = yaml.safe_load(cfg.read_text()) or {}
     os.environ.setdefault("KAGGLE_USERNAME", str(data.get("kaggle_username", "")))
     os.environ.setdefault("KAGGLE_KEY", str(data.get("kaggle_key", "")))
+    print("creds loaded")
 
 def has_creds():
     return (
@@ -62,7 +64,7 @@ def main():
             shutil.move(str(item), str(target))
 
     DONE_FLAG.touch()
-    print("Готово: датасет лежит в data/dataset/")
+    print(f"Готово: датасет лежит в {DEST_DIR}")
 
 if __name__ == "__main__":
     main()

@@ -10,8 +10,8 @@ image2text/models/model_artifacts/*
 !image2text/models/model_artifacts/.placeholder
 
 # fine tune data
-image2text/data/dataset/*
-!image2text/data/dataset/.placeholder
+image2text/train/data/dataset/*
+!image2text/train/data/dataset/.placeholder
 
 #creds
-image2text/data/creds.yamlimage2text/data/creds.yaml
+/image2text/train/data/creds.yaml
