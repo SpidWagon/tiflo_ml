@@ -1,9 +1,12 @@
 model_id: Salesforce/blip2-opt-2.7b
+images_dir: ./data/dataset/images
+captions_csv: ./data/dataset/caption.csv
+model_save_dir: ./fine_tuned_models/blip2_fine_tuned_test
 train_cfg:
   num_epochs: 1
   batch_size: 2
   lr: 2.0e-5
-  max_tokens: 128
+  max_tokens: 32
 lora_cfg:
   r: 8
   lora_alpha: 16

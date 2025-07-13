@@ -4,29 +4,20 @@ import random
 import torch
 
 import pandas as pd
-import numpy as np
 
-from pathlib import Path
-from transformers import PreTrainedModel, Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
-from torch.utils.data import Dataset, random_split, DataLoader, SubsetRandomSampler, Subset
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
+from torch.utils.data import random_split, DataLoader
 from peft import LoraConfig, get_peft_model
 from peft import prepare_model_for_kbit_training as prepare_model
 
 from train_utils.dataset import CaptionDataset
-from train_utils.metric_calculator import MetricCalculator
 
 
-IMAGES_DIR = Path("./data/dataset/images")  # папка с картинками
-CAPTIONS_CSV = Path("./data/dataset/caption.csv")  # CSV «image,caption»
 CFG_PATH = os.path.join(os.getcwd(), "fine_tune_config.yaml")
-
-SEED = 42
-
-TEST_SAMPLES_NUM = 12
-SPLIT = 9
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+SEED = 42
 random.seed(SEED)
 torch.manual_seed(SEED)
 
@@ -47,6 +38,17 @@ def get_quant_cfg(quant_args):
     return quant_cfg
 
 
+def get_datasets(cfg, processor):
+    df = pd.read_csv(cfg["captions_csv"])
+    full_ds = CaptionDataset(df, cfg["images_dir"], processor, cfg["train_cfg"]["max_tokens"])
+
+    val_size = max(1, int(0.2 * len(full_ds)))
+    train_size = len(full_ds) - val_size
+    train_ds, val_ds = random_split(full_ds, [train_size, val_size])
+
+    return train_ds, val_ds
+
+
 def collate_fn(batch):
     processed_batch = {}
     for key in batch[0].keys():
@@ -54,11 +56,7 @@ def collate_fn(batch):
     return processed_batch
 
 
-def fine_tune():
-    cfg = get_fine_tune_cfg()
-    train_cfg = cfg["train_cfg"]
-    quant_cfg = get_quant_cfg(cfg["quant_cfg"])
-
+def get_model_and_processor(cfg, quant_cfg):
     processor = Blip2Processor.from_pretrained(cfg["model_id"])
     model = Blip2ForConditionalGeneration.from_pretrained(
         cfg["model_id"],
@@ -70,29 +68,25 @@ def fine_tune():
     peft_cfg = LoraConfig(
         **cfg["lora_cfg"]
     )
-
     model = get_peft_model(model, peft_cfg)
+    return model, processor
+
+
+def fine_tune():
+    cfg = get_fine_tune_cfg()
+    train_cfg = cfg["train_cfg"]
+    quant_cfg = get_quant_cfg(cfg["quant_cfg"])
+
+    model, processor = get_model_and_processor(cfg, quant_cfg)
     model.print_trainable_parameters()
 
-    metric_counter = MetricCalculator(
-        model=model,
-        processor=processor,
-        device=device,
-        max_tokens=train_cfg["max_tokens"]
-    )
-
-    df = pd.read_csv(CAPTIONS_CSV)
-    full_ds = CaptionDataset(df, IMAGES_DIR, processor, train_cfg["max_tokens"])
-
-    dataset_indices = np.arange(TEST_SAMPLES_NUM)
-    train_ds = Subset(full_ds, dataset_indices[:SPLIT])
-    val_ds = Subset(full_ds, dataset_indices[SPLIT:])
+    train_ds, val_ds = get_datasets(cfg, processor)
     train_dataloader = DataLoader(train_ds, shuffle=True, batch_size=train_cfg["batch_size"], collate_fn=collate_fn)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg["lr"])
     model.train()
 
-    for epoch in range(1):
+    for epoch in range(train_cfg["num_epochs"]):
         print("Epoch:", epoch)
         optimizer.zero_grad()
         for idx, batch in enumerate(train_dataloader):
@@ -108,7 +102,8 @@ def fine_tune():
 
             loss.backward()
             optimizer.step()
-# metric_counter
+
+    model.save_pretrained(cfg["model_save_dir"])
 
 
 def main():
