@@ -2,6 +2,7 @@ import os
 import yaml
 import random
 import torch
+import huggingface_hub
 
 import pandas as pd
 
@@ -14,12 +15,19 @@ from train_utils.dataset import CaptionDataset
 
 
 CFG_PATH = os.path.join(os.getcwd(), "fine_tune_config.yaml")
+TOKEN_PATH = os.path.join(os.getcwd(), "hg_token.yaml")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 SEED = 42
 random.seed(SEED)
 torch.manual_seed(SEED)
+
+
+def get_hg_token():
+    with open(TOKEN_PATH, 'r') as f:
+        cfg = yaml.load(f, Loader=yaml.SafeLoader)
+    return cfg["hugging_face_token"]
 
 
 def get_fine_tune_cfg():
@@ -77,7 +85,10 @@ def fine_tune():
     train_cfg = cfg["train_cfg"]
     quant_cfg = get_quant_cfg(cfg["quant_cfg"])
 
+    huggingface_hub.login(token=get_hg_token())
+
     model, processor = get_model_and_processor(cfg, quant_cfg)
+    model.to(device)
     model.print_trainable_parameters()
 
     train_ds, val_ds = get_datasets(cfg, processor)
@@ -90,8 +101,8 @@ def fine_tune():
         print("Epoch:", epoch)
         optimizer.zero_grad()
         for idx, batch in enumerate(train_dataloader):
-            input_ids = batch.pop("input_ids")
-            pixel_values = batch.pop("pixel_values")
+            input_ids = batch.pop("input_ids").to(device)
+            pixel_values = batch.pop("pixel_values").to(device)
 
             outputs = model(input_ids=input_ids,
                             pixel_values=pixel_values,

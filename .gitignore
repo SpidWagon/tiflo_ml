@@ -15,3 +15,4 @@ image2text/train/data/dataset/*
 
 #creds
 /image2text/train/data/creds.yaml
+/image2text/train/train_utils/hg_token.yaml
