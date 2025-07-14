@@ -81,7 +81,7 @@ def get_model_and_processor(cfg, quant_cfg):
     return model, processor
 
 
-def fine_tune():
+def fine_tune(logger):
     cfg = get_fine_tune_cfg()
     train_cfg = cfg["train_cfg"]
     quant_cfg = get_quant_cfg(cfg["quant_cfg"])
@@ -98,10 +98,10 @@ def fine_tune():
     optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg["lr"])
     model.train()
 
-    logging.info("fine tune started")
+    logger.info("fine tune started")
 
     for epoch in range(train_cfg["num_epochs"]):
-        logging.info(f"Epoch: {epoch}")
+        logger.info(f"Epoch: {epoch}")
         optimizer.zero_grad()
         for idx, batch in enumerate(train_dataloader):
             input_ids = batch.pop("input_ids").to(device)
@@ -112,17 +112,25 @@ def fine_tune():
                             labels=input_ids)
             loss = outputs.loss
 
-            logging.info(f"Loss: {loss.item()}")
+            logger.info(f"Loss: {loss.item()}")
 
             loss.backward()
             optimizer.step()
 
     model.save_pretrained(cfg["model_save_dir"])
-    logging.info("model saved in " + cfg["model_save_dir"])
+    logger.info("model saved in " + cfg["model_save_dir"])
 
 
 def main():
-    fine_tune()
+    logger = logging.getLogger(__name__)
+    log_handler = logging.StreamHandler()
+    log_formatter = logging.Formatter("%(levelname)s - %(messages)s")
+
+    log_handler.setFormatter(log_formatter)
+    logger.addHandler(log_handler)
+    logger.setLevel(logging.INFO)
+
+    fine_tune(logger)
 
 
 if __name__ == "__main__":
