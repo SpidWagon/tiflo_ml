@@ -1,6 +1,7 @@
 import os
 import yaml
 import random
+import logging
 import torch
 import huggingface_hub
 
@@ -97,8 +98,10 @@ def fine_tune():
     optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg["lr"])
     model.train()
 
+    logging.info("fine tune started")
+
     for epoch in range(train_cfg["num_epochs"]):
-        print("Epoch:", epoch)
+        logging.info(f"Epoch: {epoch}")
         optimizer.zero_grad()
         for idx, batch in enumerate(train_dataloader):
             input_ids = batch.pop("input_ids").to(device)
@@ -109,12 +112,13 @@ def fine_tune():
                             labels=input_ids)
             loss = outputs.loss
 
-            print("Loss:", loss.item())
+            logging.info(f"Loss: {loss.item()}")
 
             loss.backward()
             optimizer.step()
 
     model.save_pretrained(cfg["model_save_dir"])
+    logging.info("model saved in " + cfg["model_save_dir"])
 
 
 def main():
