@@ -112,7 +112,7 @@ def fine_tune(logger):
                             labels=input_ids)
             loss = outputs.loss
 
-            logger.info(f"Loss: {loss.item()}")
+            logger.info(f"{idx} batch loss: {loss.item()}")
 
             loss.backward()
             optimizer.step()
@@ -124,7 +124,7 @@ def fine_tune(logger):
 def main():
     logger = logging.getLogger(__name__)
     log_handler = logging.StreamHandler()
-    log_formatter = logging.Formatter("%(levelname)s - %(messages)s")
+    log_formatter = logging.Formatter("%(levelname)s - %(message)s")
 
     log_handler.setFormatter(log_formatter)
     logger.addHandler(log_handler)
