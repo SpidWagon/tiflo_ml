@@ -1,18 +1,19 @@
-model_id: Salesforce/blip2-opt-2.7b
-images_dir: ./data/dataset/images
-captions_csv: ./data/dataset/caption.csv
+model_id: Salesforce/blip2-opt-6.7b
+images_dir: ./data/datasetik/Images
+captions_csv: ./data/datasetik/captions.txt
 model_save_dir: ./fine_tuned_models/blip2_fine_tuned_test
 train_cfg:
-  num_epochs: 1
-  batch_size: 2
-  lr: 2.0e-5
+  num_epochs: 3
+  batch_size: 64
+  lr: 2.0e-4
   max_tokens: 32
 lora_cfg:
   r: 8
   lora_alpha: 16
+  lora_dropout: 0.1
   target_modules:
     - "q_proj"
-    - "k_proj"
+    - "v_proj"
 quant_cfg:
   load_in_8bit: true
   llm_int8_enable_fp32_cpu_offload: true

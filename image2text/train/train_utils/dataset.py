@@ -1,4 +1,4 @@
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from pathlib import Path
 from PIL import Image
 
@@ -10,11 +10,13 @@ class CaptionDataset(Dataset):
         self.processor = processor
         self.max_tokens = max_tokens
 
-    def __len__(self): return len(self.df)
+    def __len__(self):
+        return len(self.df)
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        img_path = self.images_dir / row["image"]
+        img_name = row["image"]
+        img_path = self.images_dir / img_name
         image = Image.open(img_path).convert("RGB")
         text = str(row["caption"])
 
@@ -24,8 +26,9 @@ class CaptionDataset(Dataset):
             padding="max_length",
             truncation=True,
             max_length=self.max_tokens,
-            return_tensors="pt"
+            return_tensors="pt",
         )
         encoding = {k: v.squeeze() for k, v in encoding.items()}
 
+        encoding["image"] = img_name
         return encoding
