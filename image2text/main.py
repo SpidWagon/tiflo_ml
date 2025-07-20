@@ -27,7 +27,7 @@ def root(req: Req):
     images = req.images
     print("images aquired")
 
-    # todo: передать на блип картинки списком 
+    # todo: передать на блип картинки списком
     for image in images:
         image_decode = Model.decode_base64_image(image)
         caption = model_blip.model_request(image_decode)
