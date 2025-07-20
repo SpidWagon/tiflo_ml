@@ -10,8 +10,8 @@ from custom_model import Blip2ForConditionalSeqGeneration
 class Model:
     def __init__(
             self,
-            processor="Salesforce/blip-image-captioning-base",
-            model="Salesforce/blip-image-captioning-base",
+            processor="Salesforce/Salesforce/blip2-opt-2.7b",
+            model="Salesforce/Salesforce/blip2-opt-2.7b",
             translator_task="translation_en_to_ru",
             translator_model="models/model_artifacts",
             translator_tokenizer="models/model_artifacts"):
