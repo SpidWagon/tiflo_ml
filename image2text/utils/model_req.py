@@ -3,7 +3,7 @@ from PIL import Image
 import base64
 from transformers import AutoProcessor, pipeline
 import torch
-from utils.custom_model import Blip2ForConditionalSeqGeneration
+from custom_model import Blip2ForConditionalSeqGeneration
 
 
 PROCESSOR = AutoProcessor.from_pretrained("Salesforce/blip2-opt-2.7b")
@@ -33,7 +33,6 @@ class Model:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
 
-
     def model_request(self, images):
         processor, model, translator = self.processor, self.model, self.translator
 
@@ -41,10 +40,11 @@ class Model:
 
         for el in images:
             image = decode_base64_image(el)
-            inputik = processor(images=image, return_tensors="pt").to(self.device, torch.float16)["pixel_values"]
-            inputs.append(inputik)
+            inputs.append(
+                processor(images=image, return_tensors="pt").to(self.device, torch.float16)["pixel_values"]
+            )
 
-        out_ids = (model.generate_for_list(**inputs, max_length=64, num_beams=5, early_stopping=True))
+        out_ids = (model.generate_for_list(inputs, max_length=64, num_beams=5, early_stopping=True))
         en_caption = processor.decode(out_ids[0], skip_special_tokens=True)
 
         # Перевод на русский
