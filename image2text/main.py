@@ -22,18 +22,11 @@ model_blip = Model(
 
 @app.post("/")
 def root(req: Req):
-    comments = []
 
     images = req.images
     print("images aquired")
 
-    # todo: передать на блип картинки списком
-    image_req = []
-    for image in images:
-        image_decode = Model.decode_base64_image(image)
-        image_req.append(image_decode)
-
-    caption = model_blip.model_request(image_req)
+    caption = model_blip.model_request(images)
     print("captions done")
 
     return {

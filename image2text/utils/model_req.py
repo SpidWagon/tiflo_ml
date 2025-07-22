@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Blip2ForConditionalSeqGeneration(Blip2ForConditionalGeneration):
     def __init__(self, config):
-      super().__init__(config)
-
+        super().__init__(config)
 
     @torch.no_grad()
     def generate_for_list(
@@ -35,16 +34,16 @@ class Blip2ForConditionalSeqGeneration(Blip2ForConditionalGeneration):
 
         pre_res = []
         for el in pixel_values:
-          if el.dim() == 3:
-              el = el.unsqueeze(0)
-          # переход к эмбеддингам
-          image_embeds = self.vision_model(
-              el,
-              return_dict=True,
-              interpolate_pos_encoding=interpolate_pos_encoding,
-          ).last_hidden_state
+            if el.dim() == 3:
+                el = el.unsqueeze(0)
+            # переход к эмбеддингам
+            image_embeds = self.vision_model(
+                el,
+                return_dict=True,
+                interpolate_pos_encoding=interpolate_pos_encoding,
+            ).last_hidden_state
 
-          pre_res.append(image_embeds)
+            pre_res.append(image_embeds)
 
         image_embeds = torch.stack(pre_res).mean(dim=0)
 
@@ -122,11 +121,21 @@ class Model:
             model="Salesforce/blip2-opt-2.7b",
             translator_task="translation_en_to_ru",
             translator_model="models/model_artifacts",
-            translator_tokenizer="models/model_artifacts"):
-
+            translator_tokenizer="models/model_artifacts",
+            caption_max_length=64,
+            caption_num_beams=5,
+            translation_max_length=128
+    ):
         self.processor = AutoProcessor.from_pretrained(processor)
         self.model = Blip2ForConditionalSeqGeneration.from_pretrained(model)
         self.translator = pipeline(translator_task, model=translator_model, tokenizer=translator_tokenizer)
+
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model.to(self.device)
+
+        self.caption_max_length = caption_max_length
+        self.caption_num_beams = caption_num_beams
+        self.translation_max_length = translation_max_length
 
     def model_request(self, images):
         processor, model, translator = self.processor, self.model, self.translator
@@ -139,11 +148,15 @@ class Model:
                 processor(images=image, return_tensors="pt").to(self.device, torch.float16)["pixel_values"]
             )
 
-        out_ids = (model.generate_for_list(**inputs, max_length=64, num_beams=5, early_stopping=True))
+        out_ids = (
+            model.generate_for_list(
+                inputs, max_length=self.caption_max_length, num_beams=self.caption_num_beams, early_stopping=True
+            )
+        )
         en_caption = processor.decode(out_ids[0], skip_special_tokens=True)
 
         # Перевод на русский
-        ru_caption = translator(en_caption, max_length=128)[0]["translation_text"]
+        ru_caption = translator(en_caption, max_length=self.translation_max_length)[0]["translation_text"]
 
         return ru_caption
 
