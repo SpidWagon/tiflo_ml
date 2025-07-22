@@ -6,7 +6,8 @@ from io import BytesIO
 from PIL import Image
 from typing import Optional, List
 
-from transformers import AutoProcessor, Blip2ForConditionalGeneration, pipeline
+from peft import PeftModel
+from transformers import Blip2Processor, AutoProcessor, Blip2ForConditionalGeneration, pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -118,7 +119,8 @@ class Model:
     def __init__(
             self,
             processor="Salesforce/blip2-opt-2.7b",
-            model="Salesforce/blip2-opt-2.7b",
+            model_backbone="Salesforce/blip2-opt-2.7b",
+            lora_repo="Grgoriy/blip2-finetuned-test-2.7b",
             translator_task="translation_en_to_ru",
             translator_model="models/model_artifacts",
             translator_tokenizer="models/model_artifacts",
@@ -126,8 +128,12 @@ class Model:
             caption_num_beams=5,
             translation_max_length=128
     ):
-        self.processor = AutoProcessor.from_pretrained(processor)
-        self.model = Blip2ForConditionalSeqGeneration.from_pretrained(model)
+
+        self.processor = Blip2Processor.from_pretrained(processor)
+        base_model = Blip2ForConditionalSeqGeneration.from_pretrained(
+            model_backbone
+        )
+        self.model = PeftModel.from_pretrained(base_model, lora_repo)
         self.translator = pipeline(translator_task, model=translator_model, tokenizer=translator_tokenizer)
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
