@@ -28,14 +28,16 @@ def root(req: Req):
     print("images aquired")
 
     # todo: передать на блип картинки списком
+    image_req = []
     for image in images:
         image_decode = Model.decode_base64_image(image)
-        caption = model_blip.model_request(image_decode)
-        comments.append(caption)
+        image_req.append(image_decode)
+
+    caption = model_blip.model_request(image_req)
     print("captions done")
 
     return {
-        "comments": comments
+        "comments": caption
     }
 
 
