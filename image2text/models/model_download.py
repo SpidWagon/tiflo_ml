@@ -6,7 +6,7 @@ LOCAL_DIR = "./model_artifacts"
 
 
 def download_translator_model(model_id=MODEL_ID, local_dir=LOCAL_DIR):
-    print("model download start")
+    print("translator model download start")
     snapshot_download(
         repo_id=model_id,
         local_dir=local_dir,
@@ -22,6 +22,8 @@ def download_blip_lora(
         repo_id: str = "Grgoriy/blip2-finetuned-test-2.7b",
         local_dir: str | None = None,
 ):
+    print("caption model download start")
+
     if local_dir is None:
         return snapshot_download(repo_id, repo_type="model")
 
@@ -36,4 +38,6 @@ def download_blip_lora(
             resume_download=True,
             force_download=False,
         )
+
+    print("caption model download done")
     return abs_dir
