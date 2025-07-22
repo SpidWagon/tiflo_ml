@@ -1,20 +1,25 @@
 from io import BytesIO
 from PIL import Image
 import base64
-from transformers import BlipProcessor, BlipForConditionalGeneration, pipeline
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, pipeline
+from peft import PeftModel
 
 
 class Model:
     def __init__(
             self,
-            processor="Salesforce/blip-image-captioning-base",
-            model="Salesforce/blip-image-captioning-base",
+            processor="Salesforce/blip2-opt-6.7b",
+            model_backbone="Salesforce/blip2-opt-6.7b",
+            lora_repo="Grgoriy/blip2-finetuned-test-2.7b",
             translator_task="translation_en_to_ru",
             translator_model="models/model_artifacts",
             translator_tokenizer="models/model_artifacts"):
 
-        self.processor = BlipProcessor.from_pretrained(processor)
-        self.model = BlipForConditionalGeneration.from_pretrained(model)
+        self.processor = Blip2Processor.from_pretrained(processor)
+        base_model = Blip2ForConditionalGeneration.from_pretrained(
+            model_backbone, device_map="auto"
+        )
+        self.model = PeftModel.from_pretrained(base_model, lora_repo)
         self.translator = pipeline(translator_task, model=translator_model, tokenizer=translator_tokenizer)
 
     def model_request(self, image):

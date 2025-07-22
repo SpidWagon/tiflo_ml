@@ -5,18 +5,22 @@ from formats import *
 from utils.model_req import Model
 import uvicorn
 
-from models.model_download import download_model
+from models.model_download import download_model, download_blip_lora
 
 
 app = FastAPI()
 
 current_dir = os.getcwd()
 model_artifacts_dir = os.path.join("models", "model_artifacts")
+lora_dir = download_blip_lora(
+    local_dir=os.path.join(current_dir, "models", "blip2_lora")
+)
 
 download_model(local_dir=os.path.join(current_dir, model_artifacts_dir))
 model_blip = Model(
     translator_model=model_artifacts_dir,
-    translator_tokenizer=model_artifacts_dir
+    translator_tokenizer=model_artifacts_dir,
+    lora_repo=lora_dir      
 )
 
 
