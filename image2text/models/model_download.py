@@ -5,7 +5,7 @@ MODEL_ID = "Helsinki-NLP/opus-mt-en-ru"
 LOCAL_DIR = "./model_artifacts"
 
 
-def download_model(model_id=MODEL_ID, local_dir=LOCAL_DIR):
+def download_translator_model(model_id=MODEL_ID, local_dir=LOCAL_DIR):
     print("model download start")
     snapshot_download(
         repo_id=model_id,
@@ -16,6 +16,7 @@ def download_model(model_id=MODEL_ID, local_dir=LOCAL_DIR):
     )
 
     print(f"Model '{model_id}' is loaded to {local_dir}")
+
 
 def download_blip_lora(
         repo_id: str = "Grgoriy/blip2-finetuned-test-2.7b",
